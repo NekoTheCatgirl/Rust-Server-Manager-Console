@@ -58,17 +58,15 @@ class Program
 
     static bool ApplicationMenu(string[] Servers)
     {
-        string[] Options = new[] { "Update server files", "Create new server", "Start Existing Server", "Exit" };
+        ConsoleExtension.Propmpt("Do you wish to validate the game files, the files will still be updated if an update exists. y/n", out string promptChoice, Validators.YesNoValidator);
+
+        UpdateInstallation(Converters.YesNoConvert(promptChoice));
+
+        string[] Options = new[] { "Create new server", "Start Existing Server", "Exit" };
 
         ConsoleExtension.CreateMenu($"Server manager options, {Servers.Length} servers detected.", Options, out int selection);
 
         if (selection == 0)
-        {
-            UpdateInstallation();
-
-            return false;
-        }
-        else if (selection == 1)
         {
             var server = ServerObject.CreateNewServer();
             File.WriteAllText($"Servers/{server.Server.Identity}.json", JsonConvert.SerializeObject(server, Formatting.Indented));
@@ -77,7 +75,7 @@ class Program
 
             return false;
         }
-        else if (selection == 2)
+        else if (selection == 1)
         {
             List<string> ServersOptions = new();
 
@@ -174,10 +172,17 @@ class Program
         Thread.Sleep(1000);
     }
 
-    static void UpdateInstallation()
+    static void UpdateInstallation(bool validate = false)
     {
         Console.WriteLine("Updating Rust Dedicated...");
-        SteamCMDCommand($"+login anonymous +app_update {ConstantValues.RustDedicatedID} +quit");
+        if (validate)
+        {
+            SteamCMDCommand($"+login anonymous +app_update {ConstantValues.RustDedicatedID} validate +quit");
+        }
+        else
+        {
+            SteamCMDCommand($"+login anonymous +app_update {ConstantValues.RustDedicatedID} +quit");
+        }
 
         OxideInstall();
     }
